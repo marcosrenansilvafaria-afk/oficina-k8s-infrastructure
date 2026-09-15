@@ -15,5 +15,13 @@ resource "helm_release" "metrics_server" {
     value = "--kubelet-insecure-tls"
   }
 
-  depends_on = [module.eks]
+  # Depende explicitamente do Access Entry da propria CI (ci_admin) - sem
+  # RBAC no cluster, a chamada do provider helm falha com "the server has
+  # asked for the client to provide credentials" mesmo com credenciais AWS
+  # validas (autenticacao != autorizacao no Kubernetes).
+  depends_on = [
+    module.eks,
+    aws_eks_access_entry.ci_admin,
+    aws_eks_access_policy_association.ci_admin,
+  ]
 }
