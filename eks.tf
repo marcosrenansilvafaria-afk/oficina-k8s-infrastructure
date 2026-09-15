@@ -15,6 +15,13 @@ module "eks" {
   cluster_endpoint_public_access  = true
   cluster_endpoint_private_access = true
 
+  # Sem isso, o principal que roda o terraform apply (root, neste caso) nao
+  # recebe nenhum acesso RBAC dentro do cluster - autentica via IAM mas e
+  # rejeitado pela API do Kubernetes ("the server has asked for the client
+  # to provide credentials"), o que quebra o helm_release do Metrics Server
+  # (e qualquer kubectl/deploy futuro rodando como root).
+  enable_cluster_creator_admin_permissions = true
+
   # Sem logging do control plane no CloudWatch Logs por padrao - evita custo
   # de ingestao/armazenamento nao coberto pelo free tier neste projeto de
   # estudo/demonstracao.
