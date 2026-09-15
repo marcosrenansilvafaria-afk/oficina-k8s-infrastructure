@@ -130,7 +130,27 @@ jobs:
             -backend-config="region=${{ env.AWS_REGION }}" \
             -backend-config="dynamodb_table=${{ secrets.TF_STATE_LOCK_TABLE }}"
 
-      - name: Terraform apply
+      # Aplicado em duas fases: o provider helm/kubernetes autentica no
+      # cluster usando um token calculado no INICIO do processo do
+      # `terraform apply` - se o cluster e o Access Entry da propria CI
+      # forem criados no mesmo apply que tenta usar o provider helm, a
+      # autenticacao falha ("the server has asked for the client to provide
+      # credentials"), mesmo com o Access Entry ja existindo ao final. A
+      # 2a fase roda em um processo `terraform apply` novo, que recalcula o
+      # token de autenticacao ja com o Access Entry propagado.
+      - name: Terraform apply (fase 1 - cluster e Access Entries)
+        run: |
+          terraform apply -auto-approve -input=false \
+            -var="db_state_bucket=${{ secrets.TF_STATE_BUCKET }}" \
+            -target=module.eks \
+            -target=aws_eks_access_entry.ci_admin \
+            -target=aws_eks_access_policy_association.ci_admin \
+            -target=aws_eks_access_entry.app_deploy \
+            -target=aws_eks_access_policy_association.app_deploy
+        env:
+          TF_VAR_environment: ${{ vars.TF_ENVIRONMENT }}
+
+      - name: Terraform apply (fase 2 - restante, incluindo Metrics Server)
         run: terraform apply -auto-approve -input=false -var="db_state_bucket=${{ secrets.TF_STATE_BUCKET }}"
         env:
           TF_VAR_environment: ${{ vars.TF_ENVIRONMENT }}
