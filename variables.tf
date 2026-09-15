@@ -80,3 +80,13 @@ variable "node_max_size" {
   type        = number
   default     = 2
 }
+
+# -----------------------------------------------------------------------------
+# Acesso de outros repositorios ao cluster
+# -----------------------------------------------------------------------------
+
+variable "app_deploy_role_arn" {
+  description = "ARN da IAM Role do GitHub Actions do Repositório 4 (oficina-app), autorizada a fazer deploy (kubectl) no namespace 'oficina' via EKS Access Entry."
+  type        = string
+  default     = "arn:aws:iam::699372251061:role/oficina-app-github-actions"
+}
