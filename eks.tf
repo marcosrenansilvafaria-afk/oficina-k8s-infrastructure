@@ -1,6 +1,7 @@
 # Modulo oficial terraform-aws-modules/eks/aws: cobre cluster, OIDC/IRSA,
 # managed node groups e addons gerenciados com poucas linhas, seguindo o
 # padrao de mercado em vez de recursos nativos escritos a mao.
+#checkov:skip=CKV_TF_1: Modulo vem do Terraform Registry (nao de um repositorio git), onde o pin correto e por constraint de versao (version = "~> 20.0"), nao por commit hash - a checagem se aplica a modulos com source do tipo git::.
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
