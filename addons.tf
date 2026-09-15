@@ -1,3 +1,16 @@
+# EKS Access Entries recem-criados levam alguns segundos para propagar antes
+# de serem reconhecidos pelo API server do Kubernetes. Sem essa espera, o
+# helm_release abaixo pode falhar com "the server has asked for the client
+# to provide credentials" mesmo com o Access Entry ja criado no apply atual.
+resource "time_sleep" "wait_for_access_entry_propagation" {
+  create_duration = "20s"
+
+  depends_on = [
+    aws_eks_access_entry.ci_admin,
+    aws_eks_access_policy_association.ci_admin,
+  ]
+}
+
 # Metrics Server nao e um addon gerenciado pelo EKS (diferente de
 # coredns/kube-proxy/vpc-cni) - e um chart Helm da comunidade, necessario
 # para o HorizontalPodAutoscaler (HPA) da aplicacao (Repositorio 4) funcionar,
@@ -21,7 +34,6 @@ resource "helm_release" "metrics_server" {
   # validas (autenticacao != autorizacao no Kubernetes).
   depends_on = [
     module.eks,
-    aws_eks_access_entry.ci_admin,
-    aws_eks_access_policy_association.ci_admin,
+    time_sleep.wait_for_access_entry_propagation,
   ]
 }
