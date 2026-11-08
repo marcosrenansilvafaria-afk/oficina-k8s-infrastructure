@@ -41,3 +41,23 @@ resource "aws_eks_access_policy_association" "app_deploy" {
     namespaces = ["oficina"]
   }
 }
+
+# Concede acesso de deploy (kubectl) ao cluster para a IAM Role do GitHub
+# Actions do oficina-os-service (Fase 4) - mesmo padrao do app_deploy acima,
+# necessario para o job "Deploy no EKS" validar o deploy real do microsservico
+# para a gravacao do video de evidencia (Sprint 6, "hora do video").
+resource "aws_eks_access_entry" "os_service_deploy" {
+  cluster_name  = module.eks.cluster_name
+  principal_arn = "arn:aws:iam::699372251061:role/oficina-os-service-github-actions"
+}
+
+resource "aws_eks_access_policy_association" "os_service_deploy" {
+  cluster_name  = module.eks.cluster_name
+  principal_arn = "arn:aws:iam::699372251061:role/oficina-os-service-github-actions"
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSEditPolicy"
+
+  access_scope {
+    type       = "namespace"
+    namespaces = ["oficina"]
+  }
+}
